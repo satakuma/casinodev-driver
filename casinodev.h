@@ -1,0 +1,140 @@
+#ifndef CASINODEV_H
+#define CASINODEV_H
+
+/* Section 1: PCI ids. */
+
+#define CASINODEV_VENDOR_ID				0x0666
+#define CASINODEV_DEVICE_ID				0x0777
+
+/* Section 2: MMIO registers.  */
+
+/* Interrupt status.  */
+#define CASINODEV_INTR					0x0000
+#define CASINODEV_INTR_ENABLE			0x0004
+#define CASINODEV_ENABLE				0x0008
+#define CASINODEV_INCREMENT_SEED		0x000c
+#define CASINODEV_PROC_STATE			0x0010
+
+#define CMD_MANUAL_FEED					0x008c
+#define CMD_MANUAL_FREE					0x008c
+
+#define CASINODEV_BAR_SIZE				0x1000
+
+#define CASINODEV_CMD_FENCE_LAST		0x0090
+#define CASINODEV_CMD_FENCE_WAIT		0x0094
+
+/* Section 3: misc constants, enums etc.  */
+
+#define CASINODEV_IOCTL_CREATE_DECKS 0x0
+#define CASINODEV_IOCTL_RUN 0x1
+#define CASINODEV_IOCTL_WAIT 0x3
+#define CASINODEV_IOCTL_ENABLE_SEED_INCREMENT 0x4
+
+enum deck_type
+{
+	FULL = 0,
+	NINE_PLUS = 1
+};
+
+struct casinodev_ioctl_create_decks
+{
+	int size;
+	enum deck_type type;
+};
+
+struct casinodev_ioctl_run
+{
+	int cfd;
+	uint32_t addr;
+	uint32_t size;
+	int bfd;
+};
+
+struct casinodev_ioctl_wait
+{
+	uint32_t cnt;
+};
+
+struct casinodev_ioctl_seed
+{
+	uint32_t seed;
+};
+
+struct casinodev_ioctl_seed_increment
+{
+	uint32_t enable_increment;
+};
+
+#define CASINODEV_INTR_FENCE_WAIT 0x1
+#define CASINODEV_INTR_FEED_ERROR 0x2
+#define CASINODEV_INTR_CMD_ERROR 0x4
+#define CASINODEV_INTR_MEM_ERROR 0x8
+#define CASINODEV_INTR_SLOT_ERROR 0x10
+#define CASINODEV_INTR_ALL (CASINODEV_INTR_FENCE_WAIT | \
+							CASINODEV_INTR_FEED_ERROR | \
+							CASINODEV_INTR_CMD_ERROR  | \
+							CASINODEV_INTR_MEM_ERROR  | \
+							CASINODEV_INTR_SLOT_ERROR)
+
+#define CASINODEV_PAGE_SHIFT				12
+#define CASINODEV_PAGE_SIZE				0x1000
+
+#define CASINODEV_USER_OUTPUT_FAIR 0x0
+#define CASINODEV_USER_OUTPUT_GOOD 0x1
+#define CASINODEV_USER_OUTPUT_BAD 0x2
+
+#define CASINODEV_CMD_TYPE_MASK 0xF
+#define CASINODEV_USER_CMD_TYPE_NOP 0x0
+#define CASINODEV_USER_CMD_TYPE_BIND_SLOT 0x1
+#define CASINODEV_USER_CMD_TYPE_GET_CARDS 0x2
+#define CASINODEV_USER_CMD_TYPE_FENCE 0x3
+#define CASINODEV_USER_CMD_TYPE_NEW_DECK 0x4
+#define CASINODEV_USER_CMD_TYPE_UNBIND_SLOT 0x5
+
+#define CASINODEV_BUFFER_IOCTL_SEED 0x0
+
+#define CASINODEV_USER_CMD_BIND_SLOT_HEADER(SLOT, SEED, TYPE) (CASINODEV_USER_CMD_TYPE_BIND_SLOT | SLOT << 4 | SEED << 12 | TYPE << 28)
+#define CASINODEV_USER_CMD_GET_CARDS_HEADER(NUM, OUTPUT_TYPE) (CASINODEV_USER_CMD_TYPE_GET_CARDS | NUM << 4 | OUTPUT_TYPE << 20)
+#define CASINODEV_USER_CMD_GET_CARDS_HEADER_WSLOT(NUM, OUTPUT_TYPE, SLOT) (CASINODEV_USER_CMD_TYPE_GET_CARDS | NUM << 4 | OUTPUT_TYPE << 20 | SLOT << 24)
+#define CASINODEV_USER_CMD_FENCE_HEADER(NUM) (CASINODEV_USER_CMD_TYPE_FENCE | NUM << 4)
+#define CASINODEV_USER_CMD_NEW_DECK CASINODEV_USER_CMD_TYPE_NEW_DECK
+#define CASINODEV_USER_CMD_NEW_DECK_WSLOT (CASINODEV_USER_CMD_TYPE_NEW_DECK | SLOT << 4)
+#define CASINODEV_USER_CMD_UNBIND_SLOT_HEADER(SLOT) (CASINODEV_USER_CMD_TYPE_UNBIND_SLOT | SLOT << 4)
+
+enum card_suit {
+	CLUB,
+	DIAMOND,
+	HEART,
+	SPADE,
+};
+
+enum card_rank {
+	TWO,
+	THREE,
+	FOUR,
+	FIVE,
+	SIX,
+	SEVEN,
+	EIGHT,
+	NINE,
+	TEN,
+	JACK,
+	QUEEN,
+	KING,
+	ACE,
+};
+
+struct card
+{
+	enum card_suit suit;
+	enum card_rank rank;
+};
+
+enum ProcessingState
+{
+	NONE,
+	BIND_SLOT_0,
+	BIND_SLOT_1
+};
+
+#endif
